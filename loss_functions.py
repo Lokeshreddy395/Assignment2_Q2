@@ -19,18 +19,25 @@ print(f"Mean Squared Error (MSE): {mse_loss.numpy()}")
 # We need to use softmax to simulate categorical output (for example, in multi-class classification).
 y_true_cce = np.array([[0, 1], [0, 1], [1, 0], [0, 1]])  # One-hot encoded labels for CCE
 
+# Reshape predictions to match one-hot encoded labels
+# Create a fake "logits" by using the predicted values and then applying softmax
+y_pred_softmax = tf.nn.softmax(tf.stack([y_pred_tensor, 1 - y_pred_tensor], axis=-1))
+
 # Categorical Cross-Entropy calculation
 cce_loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
-cce_value = cce_loss(y_true_cce, y_pred_tensor)
+cce_value = cce_loss(y_true_cce, y_pred_softmax)
 print(f"Categorical Cross-Entropy (CCE): {cce_value.numpy()}")
 
 # Step 3: Modify predictions slightly and check how loss values change
 y_pred_modified = np.array([0.3, 0.7, 0.6, 0.5])  # Modified predictions
 y_pred_modified_tensor = tf.constant(y_pred_modified, dtype=tf.float32)
 
+# Create softmax logits for the modified predictions
+y_pred_modified_softmax = tf.nn.softmax(tf.stack([y_pred_modified_tensor, 1 - y_pred_modified_tensor], axis=-1))
+
 # Compute new losses for modified predictions
 mse_loss_modified = tf.reduce_mean(tf.square(y_true_tensor - y_pred_modified_tensor))
-cce_value_modified = cce_loss(y_true_cce, y_pred_modified_tensor)
+cce_value_modified = cce_loss(y_true_cce, y_pred_modified_softmax)
 
 print(f"Modified MSE Loss: {mse_loss_modified.numpy()}")
 print(f"Modified CCE Loss: {cce_value_modified.numpy()}")
